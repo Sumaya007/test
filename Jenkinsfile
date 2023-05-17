@@ -14,7 +14,7 @@ pipeline {
             steps {
                 // Build your project
                 // Replace with your build commands or scripts
-                sh 'mvn clean package'
+                git 'https://github.com/samvb007/test.git'
             }
         }
 
