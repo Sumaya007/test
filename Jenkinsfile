@@ -1,6 +1,9 @@
 pipeline {
     agent any
-
+    enironment{
+        SONARSERVER = 'sonarserver'
+        SONARSCANNER = 'sonarscanner'
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -19,11 +22,14 @@ pipeline {
         }
 
         stage('SonarQube Scan') {
+            enivronment {
+                scannerHome = tool $"{SONARSCANNER}"
+            }
             steps {
                 // Run SonarQube analysis
-                withSonarQubeEnv('SonarQube Server') {
+                withSonarQubeEnv('SONARSERVER') {
                     // Replace with your SonarQube project key and name
-                    sh 'mvn sonar:sonar -Dsonar.projectKey=my-project -Dsonar.projectName=MyProject'
+                    sh '${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=my-project -Dsonar.projectName=MyProject'
                 }
             }
         }
