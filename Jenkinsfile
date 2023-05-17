@@ -1,9 +1,5 @@
 pipeline {
     agent any
-    enironment{
-        SONARSERVER = 'sonarserver'
-        SONARSCANNER = 'sonarscanner'
-    }
     stages {
         stage('Checkout') {
             steps {
@@ -17,43 +13,28 @@ pipeline {
             steps {
                 // Build your project
                 // Replace with your build commands or scripts
-                git 'https://github.com/samvb007/test.git'
+                git branch : 'master' , url:'https://github.com/samvb007/test.git'
             }
         }
 
-        stage('SonarQube Scan') {
-            enivronment {
-                scannerHome = tool $"{SONARSCANNER}"
-            }
+        stage('SonarQube Scan') 
             steps {
                 // Run SonarQube analysis
-                withSonarQubeEnv('SONARSERVER') {
+                withSonarQubeEnv('sonarserver') {
                     // Replace with your SonarQube project key and name
-                    sh '${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=my-project -Dsonar.projectName=MyProject'
+                    $env:SONAR_SCANNER_VERSION = "4.7.0.2747"
+                    $env:SONAR_DIRECTORY = [System.IO.Path]::Combine($(get-location).Path,".sonar")
+                    $env:SONAR_SCANNER_HOME = "$env:SONAR_DIRECTORY/sonar-scanner-$env:SONAR_SCANNER_VERSION-windows"
+                    rm $env:SONAR_SCANNER_HOME -Force -Recurse -ErrorAction SilentlyContinue
+                    New-Item -path $env:SONAR_SCANNER_HOME -type directory
+                    (New-Object System.Net.WebClient).DownloadFile("https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$env:SONAR_SCANNER_VERSION-windows.zip", "$env:SONAR_DIRECTORY/sonar-scanner.zip")
+                    Add-Type -AssemblyName System.IO.Compression.FileSystem
+                    [System.IO.Compression.ZipFile]::ExtractToDirectory("$env:SONAR_DIRECTORY/sonar-scanner.zip", "$env:SONAR_DIRECTORY")
+                    rm ./.sonar/sonar-scanner.zip -Force -ErrorAction SilentlyContinue
+                    $env:Path += ";$env:SONAR_SCANNER_HOME/bin"
+                    $env:SONAR_SCANNER_OPTS="-server"
                 }
             }
-        }
-
-        stage('Deploy') {
-            steps {
-                // Deploy your project
-                // Replace with your deployment commands or scripts
-                sh 'echo "Deploying..."'
-            }
-        }
-    }
-
-    post {
-        always {
-            // Publish SonarQube results as a build step
-            // Replace with your SonarQube server URL and authentication token
-            script {
-                def scannerHome = tool 'SonarQube Scanner'
-                withSonarQubeEnv('SonarQube Server') {
-                    def scan = scannerHome + '/bin/sonar-scanner'
-                    sh "${scan} -Dsonar.login=<sonarqube_token>"
-                }
-            }
-        }
+    
     }
 }
