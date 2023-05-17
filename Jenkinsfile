@@ -22,9 +22,8 @@ pipeline {
                 // Run SonarQube analysis
                 withSonarQubeEnv('sonarserver') {
                     // Replace with your SonarQube project key and name
-                      sonar-scanner.bat -D"sonar.projectKey=sonar-key" -D"sonar.sources=." -D"sonar.host.url=http://127.0.0.1:9000"
-                }
+                      sonar-scanner.bat -D"sonar.projectKey=sonar-key" -D"sonar.sources=." -D"sonar.host.url=http://127.0.0.1:9000
             }
-    
+         }    
     }
 }
